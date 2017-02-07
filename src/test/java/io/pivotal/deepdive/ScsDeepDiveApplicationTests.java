@@ -1,6 +1,8 @@
 package io.pivotal.deepdive;
 
 import io.pivotal.deepdive.model.PersonDetails;
+import io.pivotal.deepdive.repositories.PersonDetailsRepository;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +14,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -26,9 +30,21 @@ public class ScsDeepDiveApplicationTests {
     @Autowired
     private MessageCollector messageCollector;
 
+    @Autowired
+    private PersonDetailsRepository personDetailsRepository;
+
 	@Test
 	public void test() throws Exception {
-        assertTrue(channelIsEmpty(processor.output()));
+        PersonDetails personDetails = new PersonDetails("Raul", 22, Arrays.asList("12345", "112233"));
+
+        processor.input().send(aMessage(personDetails));
+
+        assertThat(pollPhone(processor.output()), is("12345"));
+        assertThat(pollPhone(processor.output()), is("112233"));
+
+        PersonDetails expectedPersonDetails = new PersonDetails("RAUL", 22, Arrays.asList("12345", "112233"));
+
+        assertThat(personDetailsRepository.getPersonDetailsByName("Raul"), Matchers.samePropertyValuesAs(expectedPersonDetails));
     }
 
     private Message<PersonDetails> aMessage(PersonDetails personDetails) {
@@ -37,7 +53,12 @@ public class ScsDeepDiveApplicationTests {
 
     private PersonDetails pollPersonDetails(MessageChannel channel) throws InterruptedException {
         Message<?> messagePolled = messageCollector.forChannel(channel).poll(2, TimeUnit.SECONDS);
-        return (PersonDetails)messagePolled.getPayload();
+        return (PersonDetails) messagePolled.getPayload();
+    }
+
+    private String pollPhone(MessageChannel channel) throws InterruptedException {
+        Message<?> messagePolled = messageCollector.forChannel(channel).poll(2, TimeUnit.SECONDS);
+        return (String) messagePolled.getPayload();
     }
 
     private boolean channelIsEmpty(MessageChannel channel) {
