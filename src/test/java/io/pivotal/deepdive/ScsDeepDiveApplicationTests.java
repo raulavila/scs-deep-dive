@@ -44,7 +44,7 @@ public class ScsDeepDiveApplicationTests {
 
         PersonDetails expectedPersonDetails = new PersonDetails("RAUL", 22, Arrays.asList("12345", "112233"));
 
-        assertThat(personDetailsRepository.getPersonDetailsByName("Raul"), Matchers.samePropertyValuesAs(expectedPersonDetails));
+        assertThat(personDetailsRepository.getPersonDetailsByName("RAUL"), Matchers.samePropertyValuesAs(expectedPersonDetails));
     }
 
     private Message<PersonDetails> aMessage(PersonDetails personDetails) {
