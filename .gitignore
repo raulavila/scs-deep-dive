@@ -1,0 +1,11 @@
+build/
+.gradle/
+
+.idea/
+*.iml
+/classes/
+
+credentials.yml
+pids.txt
+
+/tmp/
